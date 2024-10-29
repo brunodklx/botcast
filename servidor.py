@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from datetime import datetime
 import logging
+import os
 
 app = Flask(__name__)
 
@@ -48,5 +49,6 @@ def check_access():
         logging.warning(f"Acesso negado: usuário '{username}' não encontrado")
         return jsonify({"access": False, "reason": "User not found"}), 403
 
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host="0.0.0.0", port=port)
