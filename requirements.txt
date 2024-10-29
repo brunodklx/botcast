@@ -25,3 +25,4 @@ setuptools==75.2.0
 Telethon==1.37.0
 urllib3==2.2.3
 Werkzeug==3.0.6
+gunicorn
