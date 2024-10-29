@@ -2,7 +2,6 @@ from flask import Flask, request, jsonify
 from datetime import datetime
 import logging
 
-
 app = Flask(__name__)
 
 # Configuração do logging
@@ -10,7 +9,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 # Simulando um banco de dados de usuários e suas assinaturas
 users_db = {
-    "brunodklx": {"senha": "0daa85d9", "status": "ativo", "expiracao": "2024-10-29T00:00:00"},
+    "brunodklx": {"senha": "0daa85d9", "status": "ativo", "expiracao": "2024-11-01T00:00:00"},
     "usuario2": {"senha": "senha2", "status": "ativo", "expiracao": "2024-10-27T22:40:30"}
 }
 
