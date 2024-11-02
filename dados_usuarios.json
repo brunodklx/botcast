@@ -14,6 +14,8 @@
            "status": "ativo",
            "expiracao": "2024-11-02T22:43:00"
     }
-
-
-}
+    "king": {
+           "senha": "test2554",
+           "status": "ativo",
+           "expiracao": "2024-11-03T15:11:00"
+    }
