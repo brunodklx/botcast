@@ -13,50 +13,65 @@ socketio = SocketIO(app)
 connected_clients = {}
 users_db = {}
 
+# Simulando dados dos usuários
 def carregar_dados_usuarios():
     with open('dados_usuarios.json', 'r') as f:
         return json.load(f)
 
 users_db = carregar_dados_usuarios()
-    
 
+connected_clients = {}
+
+# Função auxiliar para verificar expiração
 def check_expiration(date_str):
     try:
         expiration_date = datetime.fromisoformat(date_str)
         current_date = datetime.now()
 
-        # Verifica se a data de expiração já passou
-        expired = current_date > expiration_date
-        print(f"[DEBUG] Expiration Date: {expiration_date}, Current Date: {current_date}")
-        print(f"[DEBUG] Expired: {expired}")
-
-        return expired  # Retorna True se está expirado
+        expired = current_date >= expiration_date
+        return expired
     except ValueError as e:
-        print(f"[ERROR] Erro ao analisar a data de expiração: {e}")
+        print(f"[ERRO] Erro ao analisar a data de expiração: {e}")
         return True  # Por segurança, considere a assinatura expirada se houver um erro na data
-
+    
+# Função para monitorar a expiração de assinaturas
 def monitorar_expiracoes():
-    print("[INFO] Iniciando o monitoramento de expiração.")
-    while True:
-        # Carrega os dados de usuários a cada iteração para garantir que estamos usando as informações mais recentes
-        users_db = carregar_dados_usuarios()
+    estado_anterior = {}  # Armazenar o estado anterior de cada usuário
 
+    while True:
         for username, user_data in users_db.items():
             if 'status' not in user_data or 'expiracao' not in user_data:
-                print(f"[ERROR] Dados incompletos para o usuário: {username}")
+                print(f"[ERRO] Dados incompletos para o usuário: {username}")
                 continue
 
-            if user_data['status'] == 'ativo' and check_expiration(user_data['expiracao']):
-                if username in connected_clients:
-                    print(f"[INFO] Assinatura de {username} expirou. Enviando sinal de desconexão.")
-                    try:
-                        socketio.emit('disconnect_client', {'message': 'Sessão expirada'}, room=connected_clients[username])
-                        print(f"[INFO] Sinal de desconexão enviado para {username}.")
-                        del connected_clients[username]
-                    except Exception as e:
-                        print(f"[ERROR] Falha ao emitir sinal de desconexão para {username}: {e}")
+            is_expired = check_expiration(user_data['expiracao'])
 
-        time.sleep(60)
+            # Se o estado do usuário mudou para expirado e ele está conectado
+            if user_data['status'] == 'ativo' and is_expired:
+                if username in connected_clients:
+                    if username not in estado_anterior or not estado_anterior[username]['expirado']:
+                        print(f"[INFO] Assinatura de {username} expirou. Enviando sinal de desconexão.")
+                        try:
+                            socketio.emit('disconnect_client', {'message': 'Sessão expirada'}, room=connected_clients[username])
+                            print(f"[INFO] Sinal de desconexão enviado para {username}.")
+                            del connected_clients[username]  # Remover cliente da lista após emitir o sinal
+                        except Exception as e:
+                            print(f"[ERRO] Falha ao emitir sinal de desconexão para {username}: {e}")
+                    
+                    # Atualizar o estado do usuário para indicar que ele foi desconectado
+                    estado_anterior[username] = {'expirado': True}
+            else:
+                # Caso o usuário não esteja expirado, atualizar o estado como não expirado
+                estado_anterior[username] = {'expirado': False}
+
+        time.sleep(60)  # Verifica a cada 60 segundos
+
+# Iniciar o monitoramento de expiração em uma thread separada
+expiracao_thread = threading.Thread(target=monitorar_expiracoes, daemon=True)
+expiracao_thread.start()
+print("[INFO] Monitoramento de expiração iniciado.")
+
+
 
 
 # Iniciar o monitoramento de expiração em uma thread separada
