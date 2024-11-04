@@ -27,13 +27,10 @@ def check_expiration(date_str):
     try:
         expiration_date = datetime.fromisoformat(date_str)
         current_date = datetime.now()
+        return current_date >= expiration_date
+    except ValueError:
+        return True  # Por segurança, considera a assinatura expirada se houver um erro na data
 
-        expired = current_date >= expiration_date
-        return expired
-    except ValueError as e:
-        print(f"[ERRO] Erro ao analisar a data de expiração: {e}")
-        return True  # Por segurança, considere a assinatura expirada se houver um erro na data
-    
 # Função para monitorar a expiração de assinaturas
 def monitorar_expiracoes():
     estado_anterior = {}  # Armazenar o estado anterior de cada usuário
@@ -41,7 +38,6 @@ def monitorar_expiracoes():
     while True:
         for username, user_data in users_db.items():
             if 'status' not in user_data or 'expiracao' not in user_data:
-                print(f"[ERRO] Dados incompletos para o usuário: {username}")
                 continue
 
             is_expired = check_expiration(user_data['expiracao'])
@@ -50,27 +46,25 @@ def monitorar_expiracoes():
             if user_data['status'] == 'ativo' and is_expired:
                 if username in connected_clients:
                     if username not in estado_anterior or not estado_anterior[username]['expirado']:
-                        print(f"[INFO] Assinatura de {username} expirou. Enviando sinal de desconexão.")
+                        print(f"[INFO] Assinatura de {username} expirou.")
                         try:
                             socketio.emit('disconnect_client', {'message': 'Sessão expirada'}, room=connected_clients[username])
-                            print(f"[INFO] Sinal de desconexão enviado para {username}.")
                             del connected_clients[username]  # Remover cliente da lista após emitir o sinal
-                        except Exception as e:
-                            print(f"[ERRO] Falha ao emitir sinal de desconexão para {username}: {e}")
-                    
+                        except Exception:
+                            pass
+
                     # Atualizar o estado do usuário para indicar que ele foi desconectado
                     estado_anterior[username] = {'expirado': True}
+
+            # Caso o usuário não esteja expirado, atualizar o estado como não expirado
             else:
-                # Caso o usuário não esteja expirado, atualizar o estado como não expirado
                 estado_anterior[username] = {'expirado': False}
 
         time.sleep(60)  # Verifica a cada 60 segundos
 
 # Iniciar o monitoramento de expiração em uma thread separada
-print("[INFO] Iniciando o monitoramento de expiração.")
 expiracao_thread = threading.Thread(target=monitorar_expiracoes, daemon=True)
 expiracao_thread.start()
-print("[INFO] Monitoramento de expiração iniciado.")
  
 @app.route('/check_access', methods=['POST'])
 def check_access():
