@@ -31,36 +31,31 @@ def check_expiration(date_str):
     except ValueError:
         return True  # Por segurança, considera a assinatura expirada se houver um erro na data
 
-# Função para monitorar a expiração de assinaturas
 def monitorar_expiracoes():
     estado_anterior = {}  # Armazenar o estado anterior de cada usuário
-
+    
     while True:
         for username, user_data in users_db.items():
             if 'status' not in user_data or 'expiracao' not in user_data:
-                continue
+                continue  # Usuário com dados incompletos
 
             is_expired = check_expiration(user_data['expiracao'])
 
-            # Se o estado do usuário mudou para expirado e ele está conectado
             if user_data['status'] == 'ativo' and is_expired:
-                if username in connected_clients:
-                    if username not in estado_anterior or not estado_anterior[username]['expirado']:
-                        print(f"[INFO] Assinatura de {username} expirou.")
-                        try:
-                            socketio.emit('disconnect_client', {'message': 'Sessão expirada'}, room=connected_clients[username])
-                            del connected_clients[username]  # Remover cliente da lista após emitir o sinal
-                        except Exception:
-                            pass
+                # Se o usuário era ativo e expirou
+                if username in connected_clients and (
+                    username not in estado_anterior or not estado_anterior[username]['expirado']
+                ):
+                    try:
+                        socketio.emit('disconnect_client', {'message': 'Sessão expirada'}, room=connected_clients[username])
+                        del connected_clients[username]  # Remover cliente da lista após emitir o sinal
+                    except Exception:
+                        pass  # Manter os logs apenas onde for estritamente necessário
+           
+            # Atualizar o estado do usuário
+            estado_anterior[username] = {'expirado': is_expired}       
+        time.sleep(300)  # Aumentar o tempo de verificação para cada 5 minutos (300 segundos)
 
-                    # Atualizar o estado do usuário para indicar que ele foi desconectado
-                    estado_anterior[username] = {'expirado': True}
-
-            # Caso o usuário não esteja expirado, atualizar o estado como não expirado
-            else:
-                estado_anterior[username] = {'expirado': False}
-
-        time.sleep(60)  # Verifica a cada 60 segundos
 
 # Iniciar o monitoramento de expiração em uma thread separada
 expiracao_thread = threading.Thread(target=monitorar_expiracoes, daemon=True)
@@ -106,7 +101,7 @@ def handle_register(data):
     if username:
         connected_clients[username] = request.sid
         print(f"Usuário {username} registrado com o SID {request.sid}")
-        
+
 @socketio.on('disconnect')
 def handle_disconnect():
     sid = request.sid
