@@ -80,33 +80,25 @@ def check_access():
             is_expired = check_expiration(user['expiracao'])
             if is_expired:
                 # Usuário está ativo, mas a assinatura expirou
-                print(f"Assinatura expirada ou inativa para o usuário: {username}")
                 if username in connected_clients:
-                    print(f"Emitindo sinal de desconexão para o cliente: {username}")
                     try:
                         socketio.emit('disconnect_client', {'message': 'Sessão expirada'}, room=connected_clients[username])
-                        print(f"Sinal de desconexão emitido com sucesso para o cliente: {username}")
-                        # Remover cliente da lista após emitir o sinal
-                        del connected_clients[username]
-                    except Exception as e:
-                        print(f"[ERRO] Falha ao emitir sinal de desconexão: {e}")
+                        del connected_clients[username]  # Remover cliente da lista após emitir o sinal
+                    except Exception:
+                        pass
                 else:
-                    print(f"Cliente ({username}) não encontrado em `connected_clients`.")
-                return jsonify({"access": False, "reason": "Subscription expired or inactive"})
+                    return jsonify({"access": False, "reason": "Subscription expired or inactive"})
             else:
                 # Usuário está ativo e a assinatura é válida
-                print(f"Usuário {username} está ativo e a assinatura é válida.")
                 return jsonify({"access": True}), 200
         else:
-            print(f"Assinatura expirada ou inativa para o usuário: {username}")
             return jsonify({"access": False, "reason": "Subscription expired or inactive"})
     else:
-        print(f"Falha de login para o usuário: {username}")
         return jsonify({"access": False, "reason": "Invalid username or password"})
 
 @socketio.on('connect')
 def handle_connect():
-    print(f"Cliente conectado: {request.sid}")
+    pass
 
 @socketio.on('register')
 def handle_register(data):
@@ -114,8 +106,7 @@ def handle_register(data):
     if username:
         connected_clients[username] = request.sid
         print(f"Usuário {username} registrado com o SID {request.sid}")
-
-
+        
 @socketio.on('disconnect')
 def handle_disconnect():
     sid = request.sid
