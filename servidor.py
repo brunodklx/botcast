@@ -22,18 +22,17 @@ users_db = carregar_dados_usuarios()
 
 connected_clients = {}
 
-# Função auxiliar para verificar expiração
 def check_expiration(date_str):
     try:
         expiration_date = datetime.fromisoformat(date_str)
         current_date = datetime.now()
         return current_date >= expiration_date
     except ValueError:
-        return True  # Por segurança, considera a assinatura expirada se houver um erro na data
+        return True  # Considere como expirado em caso de erro na data
 
 def monitorar_expiracoes():
     estado_anterior = {}  # Armazenar o estado anterior de cada usuário
-    
+
     while True:
         for username, user_data in users_db.items():
             if 'status' not in user_data or 'expiracao' not in user_data:
@@ -41,8 +40,8 @@ def monitorar_expiracoes():
 
             is_expired = check_expiration(user_data['expiracao'])
 
+            # Se o usuário era ativo e expirou
             if user_data['status'] == 'ativo' and is_expired:
-                # Se o usuário era ativo e expirou
                 if username in connected_clients and (
                     username not in estado_anterior or not estado_anterior[username]['expirado']
                 ):
@@ -51,16 +50,17 @@ def monitorar_expiracoes():
                         del connected_clients[username]  # Remover cliente da lista após emitir o sinal
                     except Exception:
                         pass  # Manter os logs apenas onde for estritamente necessário
-           
-            # Atualizar o estado do usuário
-            estado_anterior[username] = {'expirado': is_expired}       
-        time.sleep(300)  # Aumentar o tempo de verificação para cada 5 minutos (300 segundos)
 
+            # Atualizar o estado do usuário
+            estado_anterior[username] = {'expirado': is_expired}
+
+        # Aumentar o tempo de verificação para cada 10 minutos (600 segundos)
+        time.sleep(600)
 
 # Iniciar o monitoramento de expiração em uma thread separada
 expiracao_thread = threading.Thread(target=monitorar_expiracoes, daemon=True)
 expiracao_thread.start()
- 
+
 @app.route('/check_access', methods=['POST'])
 def check_access():
     data = request.json
