@@ -67,14 +67,6 @@ def monitorar_expiracoes():
         time.sleep(60)  # Verifica a cada 60 segundos
 
 # Iniciar o monitoramento de expiração em uma thread separada
-expiracao_thread = threading.Thread(target=monitorar_expiracoes, daemon=True)
-expiracao_thread.start()
-print("[INFO] Monitoramento de expiração iniciado.")
-
-
-
-
-# Iniciar o monitoramento de expiração em uma thread separada
 print("[INFO] Iniciando o monitoramento de expiração.")
 expiracao_thread = threading.Thread(target=monitorar_expiracoes, daemon=True)
 expiracao_thread.start()
