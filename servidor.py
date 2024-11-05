@@ -17,10 +17,13 @@ def carregar_dados_usuarios():
 users_db = carregar_dados_usuarios()
 
 def check_expiration(date_str):
-    """Verifica se a assinatura expirou com base na data fornecida."""
-    expiration_date = datetime.strptime(date_str, "%Y-%m-%d")
-    current_date = datetime.now()
-    return current_date >= expiration_date
+    try:
+        expiration_date = datetime.strptime(date_str, "%Y-%m-%d")
+        current_date = datetime.now()
+        return current_date >= expiration_date
+    except ValueError:
+        print(f"[ERROR] Data inválida fornecida: {date_str}")
+        return True  # Considere como expirado em caso de erro na data
 
 @app.route('/check_access', methods=['POST'])
 def check_access():
