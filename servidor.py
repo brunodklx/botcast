@@ -4,8 +4,12 @@ from flask import Flask, request, jsonify
 from flask_socketio import SocketIO, emit
 import threading
 import time
+import requests
 
 app = Flask(__name__)
+
+FLASK_LOCAL_URL = " http://127.0.0.1:8080"  # Substitua pelo IP do seu servidor local
+
 app.config['SECRET_KEY'] = 'secret!'  # Define uma chave secreta
 socketio = SocketIO(app)
 
@@ -81,15 +85,21 @@ def check_access():
                         del connected_clients[username]  # Remover cliente da lista após emitir o sinal
                     except Exception:
                         pass
-                else:
-                    return jsonify({"access": False, "reason": "Subscription expired or inactive"})
+                return jsonify({"access": False, "reason": "Subscription expired or inactive"})
             else:
                 # Usuário está ativo e a assinatura é válida
                 return jsonify({"access": True}), 200
-        else:
-            return jsonify({"access": False, "reason": "Subscription expired or inactive"})
-    else:
-        return jsonify({"access": False, "reason": "Invalid username or password"})
+        return jsonify({"access": False, "reason": "Subscription expired or inactive"})
+
+    return jsonify({"access": False, "reason": "Invalid username or password"})
+
+@app.route('/flask_local_check', methods=['POST'])
+def flask_local_check():
+    try:
+        response = requests.post(f"{FLASK_LOCAL_URL}/check_access", json=request.json)
+        return jsonify(response.json()), response.status_code
+    except requests.RequestException as e:
+        return jsonify({"error": "Falha ao comunicar com o servidor local", "details": str(e)}), 500
 
 @socketio.on('connect')
 def handle_connect():
@@ -111,7 +121,6 @@ def handle_disconnect():
             print(f"Cliente ({username}) desconectado")
 
 if __name__ == '__main__':
-    socketio.run(app, host="0.0.0.0", port=8080)
-
+    socketio.run(app, host='0.0.0.0', port=8080)
 
 
