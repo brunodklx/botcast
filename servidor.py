@@ -100,6 +100,15 @@ def flask_local_check():
         return jsonify(response.json()), response.status_code
     except requests.RequestException as e:
         return jsonify({"error": "Falha ao comunicar com o servidor local", "details": str(e)}), 500
+    
+@app.route('/monitorar_expiracoes', methods=['POST'])
+def monitorar_expiracoes():
+    # Repassar a requisição de monitoramento ao servidor Flask local
+    try:
+        response = requests.post(f"{FLASK_LOCAL_URL}monitorar_expiracoes")
+        return jsonify(response.json()), response.status_code
+    except requests.RequestException as e:
+        return jsonify({"error": "Falha ao comunicar com o servidor local", "details": str(e)}), 500
 
 @socketio.on('connect')
 def handle_connect():
