@@ -18,7 +18,7 @@ users_db = carregar_dados_usuarios()
 
 def check_expiration(date_str):
     try:
-        expiration_date = datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
+        expiration_date = datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%S")
         current_date = datetime.now()
         return current_date > expiration_date
     except ValueError:
