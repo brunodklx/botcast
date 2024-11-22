@@ -2,12 +2,12 @@
     "brunodklx": {
         "senha": "0daa85d9",
         "status": "ativo",
-        "expiracao": "2024-12-05T02:30:00"
+        "expiracao": "2099-12-05T02:30:00"
     },
     "james": {
         "senha": "james1",
         "status": "ativo",
-        "expiracao": "2024-12-01T00:00:00"
+        "expiracao": "2099-12-01T00:00:00"
     },
     "erition": {
            "senha": "1545ab58",
