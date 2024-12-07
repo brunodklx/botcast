@@ -18,5 +18,11 @@
            "senha": "1514a25",
            "status": "ativo",
            "expiracao": "2024-12-06T14:11:07"
+    },
+    "zuolo": {
+           "senha": "4515ab78",
+           "status": "ativo",
+           "expiracao": "2024-12-14T14:11:07"
     }
+
 }
