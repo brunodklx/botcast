@@ -7,7 +7,7 @@
     "james": {
         "senha": "james1",
         "status": "ativo",
-        "expiracao": "2099-12-01T00:00:00"
+        "expiracao": "2024-12-01T00:00:00"
     },
     "erition": {
            "senha": "1545ab58",
@@ -17,7 +17,7 @@
     "tkler92": {
            "senha": "1514a25",
            "status": "ativo",
-           "expiracao": "2024-12-06T14:11:07"
+           "expiracao": "2025-01-10T14:11:07"
     },
     "zuolo": {
            "senha": "4515ab78",
